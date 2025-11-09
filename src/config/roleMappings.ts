@@ -1,4 +1,4 @@
-import type { Role } from "@/utils/roles";
+import type { Role } from "@/lib/permissions/roles";
 
 /**
  * ROLE MAPPING CONFIGURATION

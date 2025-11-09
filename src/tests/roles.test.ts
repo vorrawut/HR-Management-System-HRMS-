@@ -6,7 +6,7 @@ import {
   getHighestRole,
   normalizeRole,
   normalizeRoles,
-} from "@/utils/roles";
+} from "@/lib/permissions/roles";
 
 describe("Role utilities", () => {
   describe("normalizeRole", () => {

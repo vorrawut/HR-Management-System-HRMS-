@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { getHighestRole } from "@/utils/roles";
+import { usePermissions } from "@/contexts/PermissionContext";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -12,7 +12,7 @@ import { TokenDetailsPanel } from "@/components/profile/TokenDetailsPanel";
 
 export default function Profile() {
   const { data: session, status } = useSession();
-  const highestRole = getHighestRole(session?.roles);
+  const { highestRole } = usePermissions();
 
   if (status === "loading") {
     return <LoadingState />;

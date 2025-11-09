@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import type { Session } from "next-auth";
-import type { Role } from "@/utils/roles";
+import type { Role } from "@/lib/permissions/roles";
 
 interface WelcomeCardProps {
   session: Session | null;

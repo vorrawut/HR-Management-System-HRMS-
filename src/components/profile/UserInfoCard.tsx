@@ -4,7 +4,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { InfoField } from "@/components/ui/InfoField";
 import { Badge } from "@/components/ui/Badge";
 import type { Session } from "next-auth";
-import type { Role } from "@/utils/roles";
+import type { Role } from "@/lib/permissions/roles";
 import { useToken } from "@/contexts/TokenContext";
 
 interface UserInfoCardProps {

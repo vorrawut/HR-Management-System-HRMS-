@@ -1,4 +1,4 @@
-import { decodeIdToken } from "./tokenDecode";
+import { decodeIdToken } from "@/utils/tokenDecode";
 
 export function createMinimalTokenPayload(
   idToken: string | undefined

@@ -2,7 +2,7 @@ import type { JWT } from "next-auth/jwt";
 import type { Session, Account, Profile } from "next-auth";
 import { AUTH_CONSTANTS } from "./constants";
 import { extractAndNormalizeRoles } from "@/lib/permissions/roleExtraction";
-import { createMinimalTokenPayload } from "@/utils/sessionTokenPayload";
+import { createMinimalTokenPayload } from "./sessionTokenPayload";
 import { refreshAccessToken } from "./refresh";
 import { decodeTokenPayload } from "./tokenDecode";
 import type { KeycloakProfile } from "./types";

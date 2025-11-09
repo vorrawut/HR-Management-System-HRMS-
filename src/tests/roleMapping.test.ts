@@ -2,10 +2,7 @@ import {
   mapKeycloakRoleToInternal,
   mapKeycloakRolesToInternal,
   getUnmappedRoles,
-  ROLE_MAPPINGS,
-  ROLE_PATTERNS,
 } from "@/config/roleMappings";
-import type { Role } from "@/utils/roles";
 
 describe("Role Mapping", () => {
   describe("mapKeycloakRoleToInternal", () => {

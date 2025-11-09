@@ -1,6 +1,6 @@
 import { describe, it, expect, jest, beforeEach } from "@jest/globals";
 import { signOut } from "next-auth/react";
-import { federatedLogout } from "@/utils/federatedLogout";
+import { federatedLogout } from "@/lib/auth/federatedLogout";
 
 jest.mock("next-auth/react");
 

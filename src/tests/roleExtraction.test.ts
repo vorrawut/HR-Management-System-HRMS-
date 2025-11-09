@@ -1,4 +1,4 @@
-import { extractAndNormalizeRoles } from "@/utils/roleExtraction";
+import { extractAndNormalizeRoles } from "@/lib/permissions/roleExtraction";
 import { decodeIdToken } from "@/utils/tokenDecode";
 
 describe("extractAndNormalizeRoles", () => {

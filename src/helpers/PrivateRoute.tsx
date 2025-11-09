@@ -1,7 +1,7 @@
 import { auth } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
-import { hasAnyRole, type Role } from "@/utils/roles";
+import { hasAnyRole, type Role } from "@/lib/permissions/roles";
 
 interface PrivateRouteProps {
   children: ReactNode;

@@ -1,6 +1,6 @@
 import { mapKeycloakRoleToInternal, mapKeycloakRolesToInternal } from "@/config/roleMappings";
-import { normalizeRoles } from "@/utils/roles";
-import { getResourceRolesByResource } from "@/utils/token";
+import { normalizeRoles } from "@/lib/permissions/roles";
+import { getResourceRolesByResource } from "@/lib/permissions/extraction";
 
 describe("Role Mapping Integration", () => {
   const mockTokenPayload = {

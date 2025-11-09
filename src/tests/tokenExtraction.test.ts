@@ -1,4 +1,4 @@
-import { extractAllPermissions, getResourceRolesByResource } from "@/utils/token";
+import { extractAllPermissions, getResourceRolesByResource } from "@/lib/permissions/extraction";
 import type { TokenPayload } from "@/types/token";
 
 describe("Token Extraction Utilities", () => {
