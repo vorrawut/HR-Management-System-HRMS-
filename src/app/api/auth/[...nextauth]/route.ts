@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import KeycloakProvider from "next-auth/providers/keycloak";
 import type { JWT } from "next-auth/jwt";
+import type { Session, Account, Profile } from "next-auth";
 
 // Validate required environment variables
 const requiredEnvVars = {
@@ -35,8 +36,14 @@ export const authOptions = {
     maxAge: 30 * 24 * 60 * 60,
   },
   callbacks: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async jwt({ token, account, profile }: any) {
+    async jwt({ token, account, profile }: {
+      token: JWT;
+      account?: Account | null;
+      profile?: Profile & {
+        realm_access?: { roles?: string[] };
+        resource_access?: Record<string, { roles?: string[] }>;
+      };
+    }) {
       if (account) {
         token.idToken = account.id_token;
         token.accessToken = account.access_token;
@@ -80,13 +87,41 @@ export const authOptions = {
 
       return await refreshAccessToken(token);
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async session({ session, token }: any) {
+    async session({ session, token }: {
+      session: Session;
+      token: JWT;
+    }) {
       if (token) {
         session.accessToken = token.accessToken as string;
         session.error = token.error as string | undefined;
         session.roles = (token.roles as string[]) || [];
-        session.idToken = token.idToken as string | undefined;
+        if (token.idToken) {
+          try {
+            const parts = (token.idToken as string).split(".");
+            if (parts.length === 3) {
+              let base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+              while (base64.length % 4) {
+                base64 += "=";
+              }
+              const decoded = Buffer.from(base64, "base64").toString();
+              const payload = JSON.parse(decoded);
+              session.tokenPayload = {
+                exp: payload.exp,
+                iat: payload.iat,
+                sub: payload.sub,
+                email: payload.email,
+                name: payload.name,
+                preferred_username: payload.preferred_username,
+                email_verified: payload.email_verified,
+                realm_access: payload.realm_access,
+                resource_access: payload.resource_access,
+                groups: payload.groups,
+              };
+            }
+          } catch {
+            // If decoding fails, don't store token payload
+          }
+        }
       }
       return session;
     },
@@ -101,6 +136,11 @@ export const authOptions = {
 
 async function refreshAccessToken(token: JWT): Promise<JWT> {
   try {
+    // Check if refresh token exists
+    if (!token.refreshToken) {
+      throw new Error("No refresh token available");
+    }
+
     const url = `${process.env.KEYCLOAK_ISSUER}/protocol/openid-connect/token`;
 
     const response = await fetch(url, {
@@ -111,7 +151,7 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
         client_id: process.env.KEYCLOAK_CLIENT_ID!,
         client_secret: process.env.KEYCLOAK_CLIENT_SECRET!,
         grant_type: "refresh_token",
-        refresh_token: token.refreshToken || "",
+        refresh_token: token.refreshToken,
       }),
       method: "POST",
       cache: "no-store",
@@ -120,6 +160,17 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
     const tokens = await response.json();
 
     if (!response.ok) {
+      // If refresh token is invalid/expired, clear it and mark for re-authentication
+      if (tokens.error === "invalid_grant" || tokens.error === "Token is not active") {
+        console.warn("Refresh token expired or invalid, user needs to re-authenticate");
+        return {
+          ...token,
+          error: "RefreshAccessTokenError",
+          refreshToken: undefined,
+          accessToken: undefined,
+          idToken: undefined,
+        };
+      }
       throw tokens;
     }
 
@@ -127,14 +178,16 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
       ...token,
       idToken: tokens.id_token,
       accessToken: tokens.access_token,
-      expiresAt: Math.floor(Date.now() / 1000 + tokens.expires_in),
+      expiresAt: Math.floor(Date.now() / 1000 + (tokens.expires_in || 3600)),
       refreshToken: tokens.refresh_token || token.refreshToken,
+      error: undefined, // Clear any previous errors
     };
 
     return updatedToken;
   } catch (error) {
     console.error("Error refreshing access token", error);
 
+    // Return token with error, but keep refresh token for retry
     return {
       ...token,
       error: "RefreshAccessTokenError",

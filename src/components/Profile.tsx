@@ -3,7 +3,6 @@
 import { useSession } from "next-auth/react";
 import { getHighestRole } from "@/utils/roles";
 import { useMemo } from "react";
-import { decodeToken } from "@/utils/token";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -17,8 +16,8 @@ export default function Profile() {
   const highestRole = getHighestRole(session?.roles);
 
   const tokenPayload = useMemo(() => {
-    return session?.idToken ? decodeToken(session.idToken) : null;
-  }, [session?.idToken]);
+    return session?.tokenPayload || null;
+  }, [session?.tokenPayload]);
 
   if (status === "loading") {
     return <LoadingState />;
