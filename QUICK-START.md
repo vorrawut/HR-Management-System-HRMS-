@@ -1,4 +1,4 @@
-# Quick Start
+# Quick Start Guide
 
 Get up and running in a few minutes.
 

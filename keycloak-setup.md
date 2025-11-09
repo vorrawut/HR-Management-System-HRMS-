@@ -1,4 +1,4 @@
-# Keycloak Setup
+# Keycloak Setup Guide
 
 Step-by-step guide to set up Keycloak locally with Docker for this project.
 

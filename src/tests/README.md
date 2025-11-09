@@ -1,6 +1,6 @@
 # Test Organization
 
-This directory contains all tests for the application, organized by test type and module.
+All tests are organized by type and module to make them easy to find and maintain.
 
 ## Directory Structure
 
@@ -35,7 +35,8 @@ src/tests/
 ## Test Categories
 
 ### Unit Tests (`unit/`)
-Test individual functions, utilities, and modules in isolation.
+
+These test individual functions, utilities, and modules in isolation. They're organized to mirror the source code structure.
 
 - **Location**: `src/tests/unit/`
 - **Structure**: Mirrors `src/lib/` and `src/config/` structure
@@ -45,7 +46,8 @@ Test individual functions, utilities, and modules in isolation.
   - `unit/config/roleMapping.test.ts` - Tests role mapping configuration
 
 ### Component Tests (`components/`)
-Test React components in isolation with mocked dependencies.
+
+These test React components in isolation with mocked dependencies.
 
 - **Location**: `src/tests/components/`
 - **Naming**: `{ComponentName}.test.tsx`
@@ -55,7 +57,8 @@ Test React components in isolation with mocked dependencies.
   - `components/nav.test.tsx` - Tests Nav component
 
 ### Integration Tests (`integration/`)
-Test complete feature flows and interactions between multiple modules.
+
+These test complete feature flows and interactions between multiple modules.
 
 - **Location**: `src/tests/integration/`
 - **Examples**:
@@ -66,6 +69,7 @@ Test complete feature flows and interactions between multiple modules.
 ## Test Utilities
 
 ### `utils/testHelpers.tsx`
+
 Provides reusable test utilities:
 
 - **`TestWrapper`**: Wraps components with all necessary providers (SessionProvider, TokenProvider, PermissionProvider)
@@ -121,4 +125,3 @@ npm test -- --coverage
 3. **Integration Test**: Add to `integration/{feature}.test.ts`
 
 Follow the existing patterns and use `TestWrapper` for component tests that require context providers.
-

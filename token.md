@@ -1,3 +1,8 @@
+# Token Payload Example
+
+This is an example of what a full token payload looks like from Keycloak. This is what gets decoded and displayed in the profile page.
+
+```json
 {
   "exp": 1762694357,
   "iat": 1762694057,
@@ -79,3 +84,14 @@
   "family_name": "LastName",
   "email": "test@gmail.com"
 }
+```
+
+## Key Fields
+
+- **`realm_access.roles`**: Roles assigned at the realm level
+- **`resource_access`**: Roles assigned per resource/client
+- **`groups`**: User groups (if configured in Keycloak)
+- **`email`**, **`name`**, **`preferred_username`**: User information
+- **`exp`**, **`iat`**, **`auth_time`**: Token timestamps
+
+The app extracts roles from `realm_access.roles` and `resource_access.{resource}.roles`, then maps them to internal roles (admin, manager, employee) using the configuration in `src/config/roleMappings.ts`.

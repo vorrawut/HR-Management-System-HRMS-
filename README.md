@@ -1,16 +1,17 @@
-# NextAuth with Keycloak
+# NextAuth with Keycloak Example
 
-A Next.js app that uses NextAuth.js to authenticate with Keycloak via OpenID Connect. Handles login, logout, protected routes, and token refresh.
+This is a Next.js app that shows how to integrate Keycloak authentication using NextAuth.js. It handles login, logout, protected routes, and automatic token refresh.
 
-## What's included
+## What's in here
 
 - Keycloak OIDC authentication
 - Federated logout (clears both Keycloak and Next.js sessions)
 - Server-side route protection
 - Automatic JWT token refresh
-- Unit tests
+- Role-based access control
+- Unit and integration tests
 
-## Requirements
+## What you need
 
 - Node.js 20 or higher
 - Docker (for running Keycloak locally)
@@ -18,13 +19,13 @@ A Next.js app that uses NextAuth.js to authenticate with Keycloak via OpenID Con
 
 ## Getting started
 
-First, install dependencies:
+Install dependencies first:
 
 ```bash
 npm install
 ```
 
-Then check if everything is set up correctly:
+Then verify your setup:
 
 ```bash
 npm run verify
@@ -40,9 +41,9 @@ The easiest way to run Keycloak locally is with Docker:
 npm run keycloak:up
 ```
 
-Wait about 30-60 seconds for Keycloak to start. You can watch the logs with `npm run keycloak:logs`.
+Give it about 30-60 seconds to start. You can watch the logs with `npm run keycloak:logs`.
 
-Once it's running, you need to configure it:
+Once it's running, you'll need to configure it:
 
 1. Open http://localhost:8080 in your browser
 2. Log in to the admin console (username: `admin`, password: `admin`)
@@ -88,18 +89,38 @@ Open http://localhost:3000 and click "Login with Keycloak" to test the authentic
 
 ```
 src/
-├── app/
-│   ├── api/auth/
-│   │   ├── [...nextauth]/route.ts    # NextAuth config
-│   │   └── federated-logout/route.ts # Logout endpoint
-│   ├── Secured/page.tsx              # Protected page example
-│   └── ...
-├── components/                       # React components
-├── helpers/
-│   └── PrivateRoute.tsx             # Route protection
-├── utils/
-│   └── federatedLogout.ts           # Logout utility
-└── tests/                           # Unit tests
+├── app/                    # Next.js App Router pages
+│   ├── api/auth/           # NextAuth API routes
+│   ├── admin/              # Admin page
+│   ├── manager/            # Manager page
+│   ├── profile/            # Profile page
+│   └── Secured/            # Employee dashboard
+│
+├── components/             # React components
+│   ├── ui/                 # Shared UI components
+│   ├── dashboard/          # Dashboard widgets
+│   └── profile/            # Profile widgets
+│
+├── contexts/               # React Context providers
+│   ├── TokenContext.tsx    # Token data context
+│   └── PermissionContext.tsx # Permissions & roles context
+│
+├── lib/                    # Business logic
+│   ├── auth/               # Authentication logic
+│   └── permissions/        # Permissions & roles logic
+│
+├── helpers/                # Helper functions
+│   └── PrivateRoute.tsx    # Route protection
+│
+├── utils/                  # Generic utilities
+│   ├── token.ts            # Token date formatting
+│   ├── tokenDecode.ts      # Generic JWT decoding
+│   └── tokenHelpers.ts     # Type-safe token field extraction
+│
+└── tests/                  # Tests organized by type
+    ├── unit/               # Unit tests
+    ├── components/         # Component tests
+    └── integration/        # Integration tests
 ```
 
 ## Testing
@@ -139,6 +160,10 @@ The `/Secured` route uses `PrivateRoute` which:
 - Redirects to home if not authenticated
 - Renders the page if authenticated
 
+### Role-based access
+
+The app uses a role mapping system that converts Keycloak roles to internal roles (admin, manager, employee). Roles are extracted from tokens and normalized using the mapping configuration in `src/config/roleMappings.ts`.
+
 ## API routes
 
 ### `/api/auth/[...nextauth]`
@@ -152,6 +177,10 @@ The main NextAuth handler. Manages:
 ### `/api/auth/federated-logout`
 
 Returns the Keycloak logout URL so the client can redirect there after clearing the NextAuth session.
+
+### `/api/auth/token-details`
+
+Fetches the full token payload for display in the profile page.
 
 ## Docker commands
 
@@ -185,6 +214,10 @@ Make sure to set all the environment variables in your deployment platform. Upda
 
 **Token refresh not working**
 - Check that the Keycloak client has "Refresh Token" enabled
+
+**Roles not showing up**
+- Make sure roles are mapped in `src/config/roleMappings.ts`
+- Check that roles exist in the token payload (use the profile page to inspect)
 
 ## Resources
 
