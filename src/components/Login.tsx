@@ -1,11 +1,14 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
 
 export default function Login() {
+  const router = useRouter();
+
   const handleLogin = () => {
-    signIn("keycloak", { callbackUrl: "/" });
+    router.push("/login");
   };
 
   return (

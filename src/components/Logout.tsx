@@ -1,11 +1,13 @@
 "use client";
 
-import { federatedLogout } from "@/lib/auth/federatedLogout";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
 
 export default function Logout() {
+  const router = useRouter();
+
   const handleLogout = () => {
-    federatedLogout();
+    router.push("/logout");
   };
 
   return (

@@ -43,8 +43,8 @@ export function createAuthOptions() {
       session: sessionCallback,
     },
     pages: {
-      signIn: "/",
-      error: "/",
+      signIn: "/login",
+      error: "/auth/error",
     },
     secret: process.env.NEXTAUTH_SECRET,
     debug: process.env.NODE_ENV === "development",
