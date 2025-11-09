@@ -35,7 +35,7 @@ export default function Profile() {
           <TokenInfoCard />
         </div>
 
-        <RolesPermissionsPanel session={session} />
+        <RolesPermissionsPanel />
 
         <TokenDetailsPanel />
       </div>

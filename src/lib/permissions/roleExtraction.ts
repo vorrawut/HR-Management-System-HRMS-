@@ -1,4 +1,4 @@
-import { decodeIdToken, type DecodedToken } from "./tokenDecode";
+import { decodeIdToken, type DecodedToken } from "@/utils/tokenDecode";
 import { normalizeRoles } from "./roles";
 
 function extractRolesFromPayload(payload: DecodedToken): {
@@ -11,7 +11,7 @@ function extractRolesFromPayload(payload: DecodedToken): {
 
   const resourceAccess = payload.resource_access as Record<string, { roles?: string[] }> | undefined;
   const resourceRoles: string[] = [];
-  
+
   if (resourceAccess) {
     Object.values(resourceAccess).forEach((resource) => {
       if (resource?.roles) {
@@ -26,7 +26,7 @@ function extractRolesFromPayload(payload: DecodedToken): {
 }
 
 export function extractAndNormalizeRoles(
-  token: string | undefined, // Can be access_token or id_token
+  token: string | undefined,
   profile?: { realm_access?: { roles?: string[] }; resource_access?: Record<string, { roles?: string[] }> }
 ): { normalizedRoles: string[] } {
   let realmRoles: string[] = [];
@@ -46,7 +46,7 @@ export function extractAndNormalizeRoles(
   if (profile) {
     const profileRealmRoles = profile.realm_access?.roles || [];
     const profileResourceRoles = profile.resource_access?.[process.env.KEYCLOAK_CLIENT_ID || ""]?.roles || [];
-    
+
     if (profileRealmRoles.length > 0) {
       realmRoles = [...new Set([...realmRoles, ...profileRealmRoles])];
     }

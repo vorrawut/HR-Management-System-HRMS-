@@ -4,16 +4,15 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Login from "./Login";
 import Logout from "./Logout";
-import { hasRole, getHighestRole } from "@/utils/roles";
+import { usePermissions } from "@/contexts/PermissionContext";
 
 export default function Nav() {
   const { data: session, status } = useSession();
-  const userRoles = session?.roles || [];
-  const highestRole = getHighestRole(userRoles);
+  const { highestRole, hasRole } = usePermissions();
 
-  const isEmployee = hasRole(userRoles, "employee");
-  const isManager = hasRole(userRoles, "manager");
-  const isAdmin = hasRole(userRoles, "admin");
+  const isEmployee = hasRole("employee");
+  const isManager = hasRole("manager");
+  const isAdmin = hasRole("admin");
 
   return (
     <nav className="flex items-center gap-4 p-4 border-b border-gray-200 dark:border-gray-800">
