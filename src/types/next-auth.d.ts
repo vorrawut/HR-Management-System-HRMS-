@@ -1,5 +1,6 @@
 import "next-auth";
 import "next-auth/jwt";
+import type { TokenPayload } from "./token";
 
 declare module "next-auth" {
   interface Session {
@@ -11,18 +12,7 @@ declare module "next-auth" {
     accessToken?: string;
     error?: string;
     roles?: string[];
-    tokenPayload?: {
-      exp?: number;
-      iat?: number;
-      sub?: string;
-      email?: string;
-      name?: string;
-      preferred_username?: string;
-      email_verified?: boolean;
-      realm_access?: { roles?: string[] };
-      resource_access?: Record<string, { roles?: string[] }>;
-      groups?: string[];
-    };
+    tokenPayload?: TokenPayload;
   }
 
   interface User {

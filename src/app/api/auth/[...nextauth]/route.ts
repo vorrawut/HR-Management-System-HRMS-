@@ -108,19 +108,37 @@ export const authOptions = {
               session.tokenPayload = {
                 exp: payload.exp,
                 iat: payload.iat,
+                auth_time: payload.auth_time,
+                jti: payload.jti,
+                iss: payload.iss,
+                aud: payload.aud,
                 sub: payload.sub,
-                email: payload.email,
-                name: payload.name,
-                preferred_username: payload.preferred_username,
-                email_verified: payload.email_verified,
+                typ: payload.typ,
+                azp: payload.azp,
+                sid: payload.sid,
+                acr: payload.acr,
+                "allowed-origins": payload["allowed-origins"],
                 realm_access: payload.realm_access,
                 resource_access: payload.resource_access,
+                scope: payload.scope,
+                email_verified: payload.email_verified,
+                name: payload.name,
+                preferred_username: payload.preferred_username,
+                given_name: payload.given_name,
+                family_name: payload.family_name,
+                email: payload.email,
                 groups: payload.groups,
               };
             }
-          } catch {
+          } catch (error) {
+            // Log error in development for debugging
+            if (process.env.NODE_ENV === "development") {
+              console.error("Error decoding token payload:", error);
+            }
             // If decoding fails, don't store token payload
           }
+        } else if (process.env.NODE_ENV === "development") {
+          console.warn("No idToken available in JWT token for session callback");
         }
       }
       return session;

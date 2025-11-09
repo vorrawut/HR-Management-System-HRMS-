@@ -6,7 +6,18 @@ interface TokenDetailsPanelProps {
 }
 
 export function TokenDetailsPanel({ tokenPayload }: TokenDetailsPanelProps) {
-  if (!tokenPayload) return null;
+  if (!tokenPayload) {
+    return (
+      <Card>
+        <CardHeader title="Token Details" />
+        <CardContent>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Token details are not available. Please refresh the page or log in again.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
