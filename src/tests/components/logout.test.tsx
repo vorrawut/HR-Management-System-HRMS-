@@ -5,7 +5,7 @@ import "@testing-library/jest-dom";
 const mockFederatedLogout = jest.fn();
 
 jest.mock("next-auth/react");
-jest.mock("@/utils/federatedLogout", () => ({
+jest.mock("@/lib/auth/federatedLogout", () => ({
   federatedLogout: mockFederatedLogout,
 }));
 

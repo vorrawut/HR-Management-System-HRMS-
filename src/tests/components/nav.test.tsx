@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { useSession } from "next-auth/react";
 import Nav from "@/components/Nav";
+import { TestWrapper } from "../utils/testHelpers";
 
 jest.mock("next-auth/react");
 
@@ -13,7 +14,11 @@ describe("Nav Component", () => {
       status: "unauthenticated",
     });
 
-    render(<Nav />);
+    render(
+      <TestWrapper>
+        <Nav />
+      </TestWrapper>
+    );
 
     expect(screen.getByText("Login with Keycloak")).toBeInTheDocument();
     expect(screen.queryByText("Logout")).not.toBeInTheDocument();
@@ -31,7 +36,11 @@ describe("Nav Component", () => {
       status: "authenticated",
     });
 
-    render(<Nav />);
+    render(
+      <TestWrapper>
+        <Nav />
+      </TestWrapper>
+    );
 
     expect(screen.getByText("Logout")).toBeInTheDocument();
     expect(screen.getByText("Test User")).toBeInTheDocument();
@@ -44,7 +53,11 @@ describe("Nav Component", () => {
       status: "loading",
     });
 
-    render(<Nav />);
+    render(
+      <TestWrapper>
+        <Nav />
+      </TestWrapper>
+    );
 
     expect(screen.getByText("Loading...")).toBeInTheDocument();
   });
@@ -61,9 +74,13 @@ describe("Nav Component", () => {
       status: "authenticated",
     });
 
-    render(<Nav />);
+    render(
+      <TestWrapper>
+        <Nav />
+      </TestWrapper>
+    );
 
-    expect(screen.getByText("My Profile")).toBeInTheDocument();
+    expect(screen.getByText("Profile")).toBeInTheDocument();
   });
 
   it("should show manager links when user has manager role", () => {
@@ -78,7 +95,11 @@ describe("Nav Component", () => {
       status: "authenticated",
     });
 
-    render(<Nav />);
+    render(
+      <TestWrapper>
+        <Nav />
+      </TestWrapper>
+    );
 
     expect(screen.getByText("Approvals")).toBeInTheDocument();
   });
@@ -95,7 +116,11 @@ describe("Nav Component", () => {
       status: "authenticated",
     });
 
-    render(<Nav />);
+    render(
+      <TestWrapper>
+        <Nav />
+      </TestWrapper>
+    );
 
     expect(screen.getByText("Admin Panel")).toBeInTheDocument();
     expect(screen.getByText("Reports")).toBeInTheDocument();

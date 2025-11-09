@@ -4,36 +4,10 @@ import {
   hasAnyRole,
   hasAllRoles,
   getHighestRole,
-  normalizeRole,
   normalizeRoles,
 } from "@/lib/permissions/roles";
 
 describe("Role utilities", () => {
-  describe("normalizeRole", () => {
-    it("should normalize Keycloak group names to role names", () => {
-      expect(normalizeRole("admins")).toBe("admin");
-      expect(normalizeRole("employees")).toBe("employee");
-      expect(normalizeRole("managers")).toBe("manager");
-    });
-
-    it("should handle already normalized role names", () => {
-      expect(normalizeRole("admin")).toBe("admin");
-      expect(normalizeRole("employee")).toBe("employee");
-      expect(normalizeRole("manager")).toBe("manager");
-    });
-
-    it("should be case insensitive", () => {
-      expect(normalizeRole("ADMINS")).toBe("admin");
-      expect(normalizeRole("Employees")).toBe("employee");
-      expect(normalizeRole("MANAGERS")).toBe("manager");
-    });
-
-    it("should return null for unknown roles", () => {
-      expect(normalizeRole("unknown")).toBe(null);
-      expect(normalizeRole("guest")).toBe(null);
-    });
-  });
-
   describe("normalizeRoles", () => {
     it("should normalize an array of roles", () => {
       expect(normalizeRoles(["admins", "employees"])).toEqual(["admin", "employee"]);

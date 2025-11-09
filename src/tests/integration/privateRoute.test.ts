@@ -14,7 +14,7 @@ jest.mock("next/navigation", () => ({
   redirect: mockRedirect,
 }));
 
-jest.mock("@/utils/roles", () => ({
+jest.mock("@/lib/permissions/roles", () => ({
   hasAnyRole: mockHasAnyRole,
 }));
 
@@ -27,7 +27,7 @@ const mockPrivateRoute = jest.fn(async ({ children, roles }: { children: React.R
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { redirect } = require("next/navigation");
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { hasAnyRole } = require("@/utils/roles");
+  const { hasAnyRole } = require("@/lib/permissions/roles");
   
   const session = await auth();
   if (!session) {
