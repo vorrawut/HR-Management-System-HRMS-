@@ -2,7 +2,6 @@ import { describe, it, expect, jest, beforeEach } from "@jest/globals";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { PrivateRoute } from "@/helpers/PrivateRoute";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import React from "react";
 
 jest.mock("next-auth");

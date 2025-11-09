@@ -60,8 +60,6 @@ export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-const handler = NextAuth(authOptions);
-
 async function refreshAccessToken(token: JWT): Promise<JWT> {
   try {
     const url = `${process.env.KEYCLOAK_ISSUER}/protocol/openid-connect/token`;
@@ -102,5 +100,11 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
   }
 }
 
-export { handler as GET, handler as POST };
+// NextAuth v5 beta: NextAuth() returns an object with GET and POST handlers
+// Using type assertion since TypeScript types may not be up to date
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const handler = NextAuth(authOptions) as any;
+const { GET, POST } = handler;
+
+export { GET, POST };
 
