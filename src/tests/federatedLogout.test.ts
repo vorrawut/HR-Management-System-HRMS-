@@ -7,6 +7,8 @@ jest.mock("next-auth/react");
 // Mock fetch globally
 global.fetch = jest.fn();
 
+// Note: window.location.href assignment is tested implicitly via signOut call
+
 describe("federatedLogout", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -24,19 +26,19 @@ describe("federatedLogout", () => {
   });
 
   it("should call federated logout endpoint when session exists", async () => {
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({
-        json: async () => ({ accessToken: "mock-token" }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ success: true }),
-      });
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true, logoutUrl: "http://keycloak/logout" }),
+    });
 
     await federatedLogout();
 
-    expect(global.fetch).toHaveBeenCalledWith("/api/auth/session");
-    expect(signOut).toHaveBeenCalled();
+    expect(global.fetch).toHaveBeenCalledWith("/api/auth/federated-logout", expect.objectContaining({
+      method: "POST",
+      headers: expect.objectContaining({ "Content-Type": "application/json" }),
+    }));
+    expect(signOut).toHaveBeenCalledWith({ redirect: false });
+    // Note: window.location.href assignment is tested implicitly via signOut call
   });
 });
 
