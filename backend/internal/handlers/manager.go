@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"leave-management-system/internal/middleware"
 	"leave-management-system/internal/models"
 	"leave-management-system/internal/services"
 )

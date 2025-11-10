@@ -1,4 +1,12 @@
-.PHONY: run build test test-unit test-integration test-race migrate-up migrate-down migrate-create clean init-db
+.PHONY: run build test test-unit test-integration test-race migrate-up migrate-down clean init-db deps dev
+
+# Default database connection variables (can be overridden)
+DB_HOST ?= localhost
+DB_PORT ?= 5432
+DB_USER ?= postgres
+DB_PASSWORD ?= postgres
+DB_NAME ?= leave_management
+DB_SSLMODE ?= disable
 
 # Run the application
 run:
@@ -29,35 +37,25 @@ test-coverage:
 	go test -v -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out
 
-# Database migrations
+# Database migrations using Go (no external tools needed)
 migrate-up:
-	@if [ -z "$$(which migrate)" ]; then \
-		echo "Error: migrate tool not found. Install from https://github.com/golang-migrate/migrate"; \
-		exit 1; \
-	fi
-	migrate -path migrations -database "postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)" up
+	@echo "Running database migrations..."
+	@DB_HOST=$(DB_HOST) DB_PORT=$(DB_PORT) DB_USER=$(DB_USER) DB_PASSWORD=$(DB_PASSWORD) DB_NAME=$(DB_NAME) DB_SSLMODE=$(DB_SSLMODE) \
+		go run cmd/migrate/main.go up
 
 migrate-down:
-	@if [ -z "$$(which migrate)" ]; then \
-		echo "Error: migrate tool not found. Install from https://github.com/golang-migrate/migrate"; \
-		exit 1; \
-	fi
-	migrate -path migrations -database "postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)" down 1
-
-migrate-create:
-	@if [ -z "$$(which migrate)" ]; then \
-		echo "Error: migrate tool not found. Install from https://github.com/golang-migrate/migrate"; \
-		exit 1; \
-	fi
-	@if [ -z "$(NAME)" ]; then \
-		echo "Error: NAME is required. Usage: make migrate-create NAME=migration_name"; \
-		exit 1; \
-	fi
-	migrate create -ext sql -dir migrations -seq $(NAME)
+	@echo "Rolling back database migrations..."
+	@DB_HOST=$(DB_HOST) DB_PORT=$(DB_PORT) DB_USER=$(DB_USER) DB_PASSWORD=$(DB_PASSWORD) DB_NAME=$(DB_NAME) DB_SSLMODE=$(DB_SSLMODE) \
+		go run cmd/migrate/main.go down
 
 # Initialize database (create if not exists and run migrations)
 init-db:
-	@./scripts/init-db.sh
+	@echo "Initializing database..."
+	@DB_HOST=$(DB_HOST) DB_PORT=$(DB_PORT) DB_USER=$(DB_USER) DB_PASSWORD=$(DB_PASSWORD) DB_NAME=$(DB_NAME) DB_SSLMODE=$(DB_SSLMODE) \
+		go run cmd/migrate/main.go create-db
+	@DB_HOST=$(DB_HOST) DB_PORT=$(DB_PORT) DB_USER=$(DB_USER) DB_PASSWORD=$(DB_PASSWORD) DB_NAME=$(DB_NAME) DB_SSLMODE=$(DB_SSLMODE) \
+		go run cmd/migrate/main.go up
+	@echo "Database initialization completed!"
 
 # Clean build artifacts
 clean:
@@ -71,3 +69,18 @@ deps:
 
 # Development setup (install deps, init db, run)
 dev: deps init-db run
+
+# Create database (helper command)
+create-db:
+	@echo "Creating database '$(DB_NAME)'..."
+	@DB_HOST=$(DB_HOST) DB_PORT=$(DB_PORT) DB_USER=$(DB_USER) DB_PASSWORD=$(DB_PASSWORD) DB_NAME=$(DB_NAME) \
+		go run cmd/migrate/main.go create-db
+
+# Drop database (helper command)
+drop-db:
+	@echo "Dropping database '$(DB_NAME)'..."
+	@DB_HOST=$(DB_HOST) DB_PORT=$(DB_PORT) DB_USER=$(DB_USER) DB_PASSWORD=$(DB_PASSWORD) DB_NAME=$(DB_NAME) \
+		go run cmd/migrate/main.go drop-db
+
+# Reset database (drop, create, migrate)
+reset-db: drop-db create-db migrate-up

@@ -1,13 +1,13 @@
 -- Create leave_requests table
 CREATE TABLE IF NOT EXISTS leave_requests (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     employee_id VARCHAR(255) NOT NULL,
     employee_name VARCHAR(255) NOT NULL,
     employee_email VARCHAR(255) NOT NULL,
     leave_type VARCHAR(50) NOT NULL CHECK (leave_type IN ('annual', 'sick', 'personal', 'other')),
     reason TEXT NOT NULL,
-    start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
+    start_date TIMESTAMP NOT NULL,
+    end_date TIMESTAMP NOT NULL,
     days INTEGER NOT NULL CHECK (days > 0),
     status VARCHAR(50) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'cancelled')),
     manager_comment TEXT,

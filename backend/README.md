@@ -74,26 +74,64 @@ backend/
    make deps
    ```
 
-2. **Set up environment variables**:
+2. **Set up environment variables** (optional):
    ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
+   # Set database connection variables (or use defaults)
+   export DB_HOST=localhost
+   export DB_PORT=5432
+   export DB_USER=postgres
+   export DB_PASSWORD=postgres
+   export DB_NAME=leave_management
+   ```
+   
+   Or create a `.env` file in the `backend/` directory:
+   ```bash
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_USER=postgres
+   DB_PASSWORD=postgres
+   DB_NAME=leave_management
+   DB_SSLMODE=disable
    ```
 
-3. **Set up PostgreSQL database**:
+3. **Initialize database** (creates database and runs migrations):
    ```bash
-   createdb leave_management
+   make init-db
    ```
-
-4. **Run migrations**:
+   
+   Or manually:
    ```bash
+   # Create database
+   make create-db
+   
+   # Run migrations
    make migrate-up
    ```
+   
+   **Note**: All database operations use Go (no PostgreSQL client tools required)
 
-5. **Run the server**:
+4. **Run the server**:
    ```bash
    make run
    ```
+
+## Makefile Commands
+
+- `make deps` - Install Go dependencies
+- `make build` - Build the application
+- `make run` - Run the application
+- `make test` - Run all tests
+- `make test-unit` - Run unit tests only
+- `make test-integration` - Run integration tests only
+- `make test-coverage` - Run tests with coverage report
+- `make create-db` - Create database
+- `make drop-db` - Drop database
+- `make migrate-up` - Run database migrations
+- `make migrate-down` - Rollback migrations
+- `make init-db` - Initialize database (create + migrate)
+- `make reset-db` - Reset database (drop + create + migrate)
+- `make clean` - Clean build artifacts
+- `make dev` - Full dev setup (deps + init-db + run)
 
 The server will start on `http://localhost:8081` by default.
 
