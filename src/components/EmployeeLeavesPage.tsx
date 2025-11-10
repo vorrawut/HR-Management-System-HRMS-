@@ -36,9 +36,11 @@ export default function EmployeeLeavesPage() {
       setLoading(true);
       setError(null);
       const data = await getLeaveRequests();
-      setLeaves(data);
+      // Ensure data is always an array
+      setLeaves(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load leave requests");
+      setLeaves([]); // Reset to empty array on error
     } finally {
       setLoading(false);
     }

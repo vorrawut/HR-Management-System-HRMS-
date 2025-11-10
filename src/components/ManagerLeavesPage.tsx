@@ -38,9 +38,11 @@ export default function ManagerLeavesPage() {
       setLoading(true);
       setError(null);
       const data = await getPendingLeaveRequests();
-      setLeaves(data);
+      // Ensure data is always an array
+      setLeaves(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load pending leave requests");
+      setLeaves([]); // Reset to empty array on error
     } finally {
       setLoading(false);
     }

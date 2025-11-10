@@ -84,7 +84,15 @@ export async function getLeaveRequests(): Promise<LeaveRequest[]> {
   }
 
   const result = await response.json();
-  return result.data || result;
+  // Handle different response formats
+  if (Array.isArray(result)) {
+    return result;
+  }
+  if (result.data && Array.isArray(result.data)) {
+    return result.data;
+  }
+  // If result is a single object or unexpected format, return empty array
+  return [];
 }
 
 export async function getLeaveRequest(id: string): Promise<LeaveRequest> {
@@ -96,7 +104,11 @@ export async function getLeaveRequest(id: string): Promise<LeaveRequest> {
   }
 
   const result = await response.json();
-  return result.data || result;
+  // Handle wrapped response format: { success: true, data: {...} }
+  if (result.data) {
+    return result.data;
+  }
+  return result;
 }
 
 export async function updateLeaveRequest(
@@ -114,7 +126,11 @@ export async function updateLeaveRequest(
   }
 
   const result = await response.json();
-  return result.data || result;
+  // Handle wrapped response format: { success: true, data: {...} }
+  if (result.data) {
+    return result.data;
+  }
+  return result;
 }
 
 export async function cancelLeaveRequest(id: string): Promise<void> {
@@ -140,7 +156,15 @@ export async function getPendingLeaveRequests(): Promise<LeaveRequest[]> {
   }
 
   const result = await response.json();
-  return result.data || result;
+  // Handle different response formats
+  if (Array.isArray(result)) {
+    return result;
+  }
+  if (result.data && Array.isArray(result.data)) {
+    return result.data;
+  }
+  // If result is a single object or unexpected format, return empty array
+  return [];
 }
 
 export async function approveLeaveRequest(
@@ -158,7 +182,11 @@ export async function approveLeaveRequest(
   }
 
   const result = await response.json();
-  return result.data || result;
+  // Handle wrapped response format: { success: true, data: {...} }
+  if (result.data) {
+    return result.data;
+  }
+  return result;
 }
 
 export async function rejectLeaveRequest(
@@ -176,6 +204,10 @@ export async function rejectLeaveRequest(
   }
 
   const result = await response.json();
-  return result.data || result;
+  // Handle wrapped response format: { success: true, data: {...} }
+  if (result.data) {
+    return result.data;
+  }
+  return result;
 }
 
