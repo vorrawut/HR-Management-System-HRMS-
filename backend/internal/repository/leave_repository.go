@@ -2,8 +2,10 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/google/uuid"
+	"leave-management-system/internal/logger"
 	"leave-management-system/internal/models"
 )
 
@@ -19,12 +21,16 @@ type LeaveRepository interface {
 
 // leaveRepository implements LeaveRepository
 type leaveRepository struct {
-	db *sql.DB
+	db     *sql.DB
+	logger *logger.Logger
 }
 
 // NewLeaveRepository creates a new leave repository
 func NewLeaveRepository(db *sql.DB) LeaveRepository {
-	return &leaveRepository{db: db}
+	return &leaveRepository{
+		db:     db,
+		logger: logger.New().With("component", "repository"),
+	}
 }
 
 // Create inserts a new leave request
@@ -68,6 +74,10 @@ func (r *leaveRepository) Create(leave *models.LeaveRequest) error {
 		&leave.UpdatedAt,
 	)
 
+	if err != nil {
+		r.logger.Errorf("db_create_failed operation=create_leave leave_id=%s employee_id=%s error=%v", leave.ID, leave.EmployeeID, err)
+	}
+
 	return err
 }
 
@@ -98,10 +108,11 @@ func (r *leaveRepository) FindByID(id uuid.UUID) (*models.LeaveRequest, error) {
 	)
 
 	if err == sql.ErrNoRows {
-		return nil, err
+		return nil, fmt.Errorf("%w: %s", ErrNotFound, "leave request")
 	}
 	if err != nil {
-		return nil, err
+		r.logger.Errorf("db_query_failed operation=find_by_id leave_id=%s error=%v", id, err)
+		return nil, fmt.Errorf("failed to find leave request by ID: %w", err)
 	}
 
 	return &leave, nil
@@ -119,7 +130,8 @@ func (r *leaveRepository) FindByEmployeeID(employeeID string) ([]*models.LeaveRe
 
 	rows, err := r.db.Query(query, employeeID)
 	if err != nil {
-		return nil, err
+		r.logger.Errorf("db_query_failed operation=find_by_employee_id employee_id=%s error=%v", employeeID, err)
+		return nil, fmt.Errorf("failed to query leave requests by employee ID: %w", err)
 	}
 	defer rows.Close()
 
@@ -162,7 +174,8 @@ func (r *leaveRepository) FindPending() ([]*models.LeaveRequest, error) {
 
 	rows, err := r.db.Query(query, models.LeaveStatusPending)
 	if err != nil {
-		return nil, err
+		r.logger.Errorf("db_query_failed operation=find_pending error=%v", err)
+		return nil, fmt.Errorf("failed to query pending leave requests: %w", err)
 	}
 	defer rows.Close()
 
@@ -228,7 +241,15 @@ func (r *leaveRepository) Update(leave *models.LeaveRequest) error {
 		&leave.UpdatedAt,
 	)
 
-	return err
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return fmt.Errorf("%w: %s", ErrNotFound, "leave request")
+		}
+		r.logger.Errorf("db_update_failed operation=update_leave leave_id=%s error=%v", leave.ID, err)
+		return fmt.Errorf("failed to update leave request: %w", err)
+	}
+
+	return nil
 }
 
 // UpdateStatus updates the status and comment of a leave request
@@ -248,6 +269,10 @@ func (r *leaveRepository) UpdateStatus(id uuid.UUID, status models.LeaveStatus, 
 	}
 
 	_, err := r.db.Exec(query, status, commentValue, id)
-	return err
+	if err != nil {
+		r.logger.Errorf("db_update_failed operation=update_status leave_id=%s status=%s error=%v", id, status, err)
+		return fmt.Errorf("failed to update leave request status: %w", err)
+	}
+	return nil
 }
 

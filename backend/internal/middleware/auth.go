@@ -13,14 +13,18 @@ import (
 func AuthMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
+			log := GetLogger(c)
+
 			authHeader := c.Request().Header.Get("Authorization")
 			if authHeader == "" {
+				log.Warn("auth_failed reason=missing_authorization_header")
 				return echo.NewHTTPError(http.StatusUnauthorized, "Missing authorization header")
 			}
 
 			// Extract token from "Bearer <token>"
 			parts := strings.Split(authHeader, " ")
 			if len(parts) != 2 || parts[0] != "Bearer" {
+				log.Warn("auth_failed reason=invalid_header_format")
 				return echo.NewHTTPError(http.StatusUnauthorized, "Invalid authorization header format")
 			}
 
@@ -29,10 +33,12 @@ func AuthMiddleware() echo.MiddlewareFunc {
 			// Extract user info from token
 			userInfo, err := utils.ExtractUserInfoFromToken(token)
 			if err != nil {
+				log.Warnf("auth_failed reason=invalid_token error=%v", err)
 				return echo.NewHTTPError(http.StatusUnauthorized, "Invalid token")
 			}
 
 			if userInfo.UserID == "" {
+				log.Warn("auth_failed reason=missing_user_info")
 				return echo.NewHTTPError(http.StatusUnauthorized, "Token missing user information")
 			}
 
@@ -41,6 +47,14 @@ func AuthMiddleware() echo.MiddlewareFunc {
 			c.Set("userEmail", userInfo.Email)
 			c.Set("userName", userInfo.Name)
 			c.Set("userRoles", userInfo.Roles)
+
+			// Update logger with user context
+			if logFromCtx := GetLogger(c); logFromCtx != nil {
+				updatedLog := logFromCtx.WithUser(userInfo.UserID, userInfo.Email)
+				c.Set("logger", updatedLog)
+			}
+
+			log.Debugf("auth_success user_id=%s", userInfo.UserID)
 
 			return next(c)
 		}

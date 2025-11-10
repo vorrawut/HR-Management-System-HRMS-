@@ -6,6 +6,7 @@ import (
 	"os"
 
 	_ "github.com/lib/pq"
+	"leave-management-system/internal/logger"
 )
 
 func main() {
@@ -45,13 +46,15 @@ func getEnv(key, defaultValue string) string {
 }
 
 func createDatabase(host, port, user, password, dbName string) {
+	log := logger.New().With("operation", "create_database")
+
 	// Connect to postgres database to create the target database
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=postgres sslmode=disable",
 		host, port, user, password)
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		fmt.Printf("Error: Failed to connect to PostgreSQL: %v\n", err)
+		log.Errorf("db_connect_failed host=%s port=%s error=%v", host, port, err)
 		os.Exit(1)
 	}
 	defer db.Close()
@@ -64,28 +67,30 @@ func createDatabase(host, port, user, password, dbName string) {
 	).Scan(&exists)
 
 	if exists {
-		fmt.Printf("Database '%s' already exists.\n", dbName)
+		log.Infof("database_exists db_name=%s", dbName)
 		return
 	}
 
 	// Create database
 	_, err = db.Exec(fmt.Sprintf("CREATE DATABASE %s", dbName))
 	if err != nil {
-		fmt.Printf("Error: Failed to create database: %v\n", err)
+		log.Errorf("db_create_failed db_name=%s error=%v", dbName, err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("Database '%s' created successfully!\n", dbName)
+	log.Infof("database_created db_name=%s", dbName)
 }
 
 func dropDatabase(host, port, user, password, dbName string) {
+	log := logger.New().With("operation", "drop_database")
+
 	// Connect to postgres database to drop the target database
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=postgres sslmode=disable",
 		host, port, user, password)
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		fmt.Printf("Error: Failed to connect to PostgreSQL: %v\n", err)
+		log.Errorf("db_connect_failed host=%s port=%s error=%v", host, port, err)
 		os.Exit(1)
 	}
 	defer db.Close()
@@ -98,40 +103,37 @@ func dropDatabase(host, port, user, password, dbName string) {
 	`, dbName)
 	if err != nil {
 		// Ignore error if database doesn't exist
+		log.Debugf("db_terminate_connections_skipped db_name=%s", dbName)
 	}
 
 	// Drop database
 	_, err = db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s", dbName))
 	if err != nil {
-		fmt.Printf("Error: Failed to drop database: %v\n", err)
+		log.Errorf("db_drop_failed db_name=%s error=%v", dbName, err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("Database '%s' dropped successfully!\n", dbName)
+	log.Infof("database_dropped db_name=%s", dbName)
 }
 
 func runMigrationsUp(host, port, user, password, dbName, sslMode string) {
+	log := logger.New().With("operation", "migrate_up")
+
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		host, port, user, password, dbName, sslMode)
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		fmt.Printf("Error: Failed to connect to database: %v\n", err)
-		fmt.Println("\nMake sure:")
-		fmt.Println("  1. PostgreSQL is running")
-		fmt.Println("  2. Database exists (run: go run cmd/migrate/main.go create-db)")
-		fmt.Println("  3. User has permissions")
+		log.Errorf("db_connect_failed host=%s port=%s db_name=%s error=%v", host, port, dbName, err)
+		log.Warn("db_connect_troubleshooting: ensure PostgreSQL is running, database exists, and user has permissions")
 		os.Exit(1)
 	}
 	defer db.Close()
 
 	// Test connection
 	if err := db.Ping(); err != nil {
-		fmt.Printf("Error: Failed to ping database: %v\n", err)
-		fmt.Println("\nMake sure:")
-		fmt.Println("  1. PostgreSQL is running")
-		fmt.Println("  2. Database exists (run: go run cmd/migrate/main.go create-db)")
-		fmt.Println("  3. User has permissions")
+		log.Errorf("db_ping_failed host=%s port=%s db_name=%s error=%v", host, port, dbName, err)
+		log.Warn("db_ping_troubleshooting: ensure PostgreSQL is running, database exists, and user has permissions")
 		os.Exit(1)
 	}
 
@@ -139,28 +141,30 @@ func runMigrationsUp(host, port, user, password, dbName, sslMode string) {
 	migrationFile := "migrations/001_create_leave_requests.up.sql"
 	sql, err := os.ReadFile(migrationFile)
 	if err != nil {
-		fmt.Printf("Error: Failed to read migration file '%s': %v\n", migrationFile, err)
+		log.Errorf("migration_read_failed file=%s error=%v", migrationFile, err)
 		os.Exit(1)
 	}
 
 	// Execute migration
-	fmt.Println("Running migrations...")
+	log.Info("migration_start")
 	_, err = db.Exec(string(sql))
 	if err != nil {
-		fmt.Printf("Error: Failed to run migrations: %v\n", err)
+		log.Errorf("migration_failed file=%s error=%v", migrationFile, err)
 		os.Exit(1)
 	}
 
-	fmt.Println("Migrations completed successfully!")
+	log.Info("migration_complete")
 }
 
 func runMigrationsDown(host, port, user, password, dbName, sslMode string) {
+	log := logger.New().With("operation", "migrate_down")
+
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		host, port, user, password, dbName, sslMode)
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		fmt.Printf("Error: Failed to connect to database: %v\n", err)
+		log.Errorf("db_connect_failed host=%s port=%s db_name=%s error=%v", host, port, dbName, err)
 		os.Exit(1)
 	}
 	defer db.Close()
@@ -169,18 +173,18 @@ func runMigrationsDown(host, port, user, password, dbName, sslMode string) {
 	migrationFile := "migrations/001_create_leave_requests.down.sql"
 	sql, err := os.ReadFile(migrationFile)
 	if err != nil {
-		fmt.Printf("Error: Failed to read migration file '%s': %v\n", migrationFile, err)
+		log.Errorf("migration_read_failed file=%s error=%v", migrationFile, err)
 		os.Exit(1)
 	}
 
 	// Execute migration
-	fmt.Println("Rolling back migrations...")
+	log.Info("migration_rollback_start")
 	_, err = db.Exec(string(sql))
 	if err != nil {
-		fmt.Printf("Error: Failed to rollback migrations: %v\n", err)
+		log.Errorf("migration_rollback_failed file=%s error=%v", migrationFile, err)
 		os.Exit(1)
 	}
 
-	fmt.Println("Rollback completed successfully!")
+	log.Info("migration_rollback_complete")
 }
 
