@@ -30,22 +30,38 @@ export default function Nav() {
           >
             Profile
           </Link>
-          {isEmployee && (
-            <Link
-              href={PAGE_ROUTES.SECURED}
-              className="text-lg font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400"
-            >
-              Dashboard
-            </Link>
-          )}
-          {isManager && (
-            <Link
-              href={PAGE_ROUTES.MANAGER}
-              className="text-lg font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400"
-            >
-              Approvals
-            </Link>
-          )}
+            {isEmployee && (
+              <>
+                <Link
+                  href={PAGE_ROUTES.SECURED}
+                  className="text-lg font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href={PAGE_ROUTES.EMPLOYEE_LEAVES}
+                  className="text-lg font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                >
+                  My Leaves
+                </Link>
+              </>
+            )}
+            {isManager && (
+              <>
+                <Link
+                  href={PAGE_ROUTES.MANAGER}
+                  className="text-lg font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                >
+                  Approvals
+                </Link>
+                <Link
+                  href={PAGE_ROUTES.MANAGER_LEAVES}
+                  className="text-lg font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                >
+                  Leave Requests
+                </Link>
+              </>
+            )}
           {isAdmin && (
             <>
               <Link

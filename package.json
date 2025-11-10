@@ -19,6 +19,7 @@
     "test:keycloak": "node scripts/test-connection.js"
   },
   "dependencies": {
+    "date-fns": "^4.1.0",
     "next": "16.0.1",
     "next-auth": "^5.0.0-beta.30",
     "react": "19.2.0",

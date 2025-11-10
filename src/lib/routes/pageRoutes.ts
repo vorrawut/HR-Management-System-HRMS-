@@ -21,6 +21,11 @@ export const PAGE_ROUTES = {
   // Role-based routes
   ADMIN: "/admin",
   MANAGER: "/manager",
+  
+  // Leave Management routes
+  EMPLOYEE_LEAVES: "/employee/leaves",
+  EMPLOYEE_LEAVES_NEW: "/employee/leaves/new",
+  MANAGER_LEAVES: "/manager/leaves",
 } as const;
 
 export type PageRoute = typeof PAGE_ROUTES[keyof typeof PAGE_ROUTES];
