@@ -447,8 +447,8 @@ func TestLeaveService_ApproveLeaveRequest(t *testing.T) {
 				t.Errorf("expected status %q, got %q", models.LeaveStatusApproved, leave.Status)
 			}
 
-			if leave.ManagerComment != tt.comment {
-				t.Errorf("expected comment %q, got %q", tt.comment, leave.ManagerComment)
+			if leave.GetManagerComment() != tt.comment {
+				t.Errorf("expected comment %q, got %q", tt.comment, leave.GetManagerComment())
 			}
 		})
 	}
@@ -527,8 +527,8 @@ func TestLeaveService_RejectLeaveRequest(t *testing.T) {
 				t.Errorf("expected status %q, got %q", models.LeaveStatusRejected, leave.Status)
 			}
 
-			if leave.ManagerComment != tt.comment {
-				t.Errorf("expected comment %q, got %q", tt.comment, leave.ManagerComment)
+			if leave.GetManagerComment() != tt.comment {
+				t.Errorf("expected comment %q, got %q", tt.comment, leave.GetManagerComment())
 			}
 		})
 	}

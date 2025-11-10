@@ -61,9 +61,20 @@ async function apiRequest(
 export async function createLeaveRequest(
   data: CreateLeaveRequest
 ): Promise<LeaveRequest> {
+  // Convert date strings to ISO 8601 format (with time) for Go backend
+  const payload = {
+    ...data,
+    startDate: data.startDate.includes("T") 
+      ? data.startDate 
+      : `${data.startDate}T00:00:00Z`,
+    endDate: data.endDate.includes("T")
+      ? data.endDate
+      : `${data.endDate}T23:59:59Z`,
+  };
+
   const response = await apiRequest(API_ROUTES.LEAVE.BASE, {
     method: "POST",
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
@@ -115,9 +126,18 @@ export async function updateLeaveRequest(
   id: string,
   data: UpdateLeaveRequest
 ): Promise<LeaveRequest> {
+  // Convert date strings to ISO 8601 format (with time) for Go backend
+  const payload: UpdateLeaveRequest = { ...data };
+  if (data.startDate && !data.startDate.includes("T")) {
+    payload.startDate = `${data.startDate}T00:00:00Z`;
+  }
+  if (data.endDate && !data.endDate.includes("T")) {
+    payload.endDate = `${data.endDate}T23:59:59Z`;
+  }
+
   const response = await apiRequest(API_ROUTES.LEAVE.DETAIL(id), {
     method: "PUT",
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {

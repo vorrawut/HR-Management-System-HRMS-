@@ -1,6 +1,7 @@
 package services
 
 import (
+	"database/sql"
 	"testing"
 	"time"
 
@@ -29,7 +30,7 @@ func TestEmailService_SendLeaveApprovalEmail(t *testing.T) {
 		EndDate:       time.Date(2024, 1, 5, 0, 0, 0, 0, time.UTC),
 		Days:          5,
 		Reason:        "Vacation",
-		ManagerComment: "Enjoy your vacation!",
+		ManagerComment: sql.NullString{String: "Enjoy your vacation!", Valid: true},
 	}
 
 	// Should not error when email is not configured
@@ -60,7 +61,7 @@ func TestEmailService_SendLeaveRejectionEmail(t *testing.T) {
 		EndDate:       time.Date(2024, 1, 5, 0, 0, 0, 0, time.UTC),
 		Days:          5,
 		Reason:        "Vacation",
-		ManagerComment: "Not enough leave balance",
+		ManagerComment: sql.NullString{String: "Not enough leave balance", Valid: true},
 	}
 
 	// Should not error when email is not configured
@@ -86,7 +87,7 @@ func TestEmailService_BuildApprovalEmailBody(t *testing.T) {
 		EndDate:       time.Date(2024, 1, 5, 0, 0, 0, 0, time.UTC),
 		Days:          5,
 		Reason:        "Vacation",
-		ManagerComment: "Enjoy!",
+		ManagerComment: sql.NullString{String: "Enjoy!", Valid: true},
 	}
 
 	// This is an internal method, but we can test it indirectly

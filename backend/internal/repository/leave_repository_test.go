@@ -115,8 +115,8 @@ func TestMockLeaveRepository(t *testing.T) {
 		if updated.Status != models.LeaveStatusApproved {
 			t.Errorf("expected status %q, got %q", models.LeaveStatusApproved, updated.Status)
 		}
-		if updated.ManagerComment != "Approved" {
-			t.Errorf("expected comment %q, got %q", "Approved", updated.ManagerComment)
+		if updated.GetManagerComment() != "Approved" {
+			t.Errorf("expected comment %q, got %q", "Approved", updated.GetManagerComment())
 		}
 	})
 }

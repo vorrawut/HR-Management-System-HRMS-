@@ -74,7 +74,11 @@ func (m *MockLeaveRepository) UpdateStatus(id uuid.UUID, status models.LeaveStat
 		return sql.ErrNoRows
 	}
 	leave.Status = status
-	leave.ManagerComment = comment
+	if comment == "" {
+		leave.ManagerComment = sql.NullString{Valid: false}
+	} else {
+		leave.ManagerComment = sql.NullString{String: comment, Valid: true}
+	}
 	leave.UpdatedAt = time.Now()
 	return nil
 }

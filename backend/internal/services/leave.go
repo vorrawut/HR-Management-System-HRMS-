@@ -38,16 +38,17 @@ func (s *LeaveService) CreateLeaveRequest(req *models.CreateLeaveRequest, employ
 	}
 
 	leaveRequest := &models.LeaveRequest{
-		ID:            uuid.New(),
-		EmployeeID:    employeeID,
-		EmployeeName:  employeeName,
-		EmployeeEmail: employeeEmail,
-		LeaveType:     models.LeaveType(req.LeaveType),
-		Reason:        req.Reason,
-		StartDate:     req.StartDate,
-		EndDate:       req.EndDate,
-		Days:          days,
-		Status:        models.LeaveStatusPending,
+		ID:             uuid.New(),
+		EmployeeID:     employeeID,
+		EmployeeName:   employeeName,
+		EmployeeEmail:  employeeEmail,
+		LeaveType:      models.LeaveType(req.LeaveType),
+		Reason:         req.Reason,
+		StartDate:      req.StartDate,
+		EndDate:        req.EndDate,
+		Days:           days,
+		Status:         models.LeaveStatusPending,
+		ManagerComment: sql.NullString{Valid: false}, // NULL for new requests
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
 	}

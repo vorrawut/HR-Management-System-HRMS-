@@ -34,8 +34,15 @@ async function handler(
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: response.statusText }));
-      return errorResponse(error.message || error.error || "Request failed", response.status);
+      let errorMessage = "Request failed";
+      try {
+        const error = await response.json();
+        // Echo returns errors in format: { message: "..." }
+        errorMessage = error.message || error.error || response.statusText;
+      } catch {
+        errorMessage = response.statusText;
+      }
+      return errorResponse(errorMessage, response.status);
     }
 
     if (method === "DELETE") {

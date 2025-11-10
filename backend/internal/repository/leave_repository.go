@@ -239,7 +239,15 @@ func (r *leaveRepository) UpdateStatus(id uuid.UUID, status models.LeaveStatus, 
 		WHERE id = $3
 	`
 
-	_, err := r.db.Exec(query, status, comment, id)
+	// Handle empty comment as NULL
+	var commentValue interface{}
+	if comment == "" {
+		commentValue = nil
+	} else {
+		commentValue = comment
+	}
+
+	_, err := r.db.Exec(query, status, commentValue, id)
 	return err
 }
 

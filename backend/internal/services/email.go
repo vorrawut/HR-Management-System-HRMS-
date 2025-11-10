@@ -64,7 +64,7 @@ Thank you,
 Leave Management System
 	`, leave.EmployeeName, leave.LeaveType, leave.StartDate.Format("January 2, 2006"),
 		leave.EndDate.Format("January 2, 2006"), leave.Days, leave.Reason,
-		s.getManagerCommentSection(leave.ManagerComment))
+		s.getManagerCommentSection(leave.GetManagerComment()))
 }
 
 func (s *EmailService) buildRejectionEmailBody(leave *models.LeaveRequest) string {
@@ -89,7 +89,7 @@ Thank you,
 Leave Management System
 	`, leave.EmployeeName, leave.LeaveType, leave.StartDate.Format("January 2, 2006"),
 		leave.EndDate.Format("January 2, 2006"), leave.Days, leave.Reason,
-		leave.ManagerComment)
+		leave.GetManagerComment())
 }
 
 func (s *EmailService) getManagerCommentSection(comment string) string {
