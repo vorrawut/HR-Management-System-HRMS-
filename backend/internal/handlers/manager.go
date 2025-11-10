@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -61,11 +62,11 @@ func (h *ManagerHandler) ApproveLeaveRequest(c echo.Context) error {
 
 	leave, err := h.leaveService.ApproveLeaveRequest(id, strings.TrimSpace(req.Comment))
 	if err != nil {
-		if err == services.ErrLeaveNotFound {
+		if errors.Is(err, services.ErrLeaveNotFound) {
 			log.Warnf("approve_leave_failed reason=not_found leave_id=%s", id)
 			return echo.NewHTTPError(http.StatusNotFound, "Leave request not found")
 		}
-		if err == services.ErrInvalidStatus {
+		if errors.Is(err, services.ErrInvalidStatus) {
 			log.Warnf("approve_leave_failed reason=invalid_status leave_id=%s error=%v", id, err)
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -118,11 +119,11 @@ func (h *ManagerHandler) RejectLeaveRequest(c echo.Context) error {
 
 	leave, err := h.leaveService.RejectLeaveRequest(id, comment)
 	if err != nil {
-		if err == services.ErrLeaveNotFound {
+		if errors.Is(err, services.ErrLeaveNotFound) {
 			log.Warnf("reject_leave_failed reason=not_found leave_id=%s", id)
 			return echo.NewHTTPError(http.StatusNotFound, "Leave request not found")
 		}
-		if err == services.ErrInvalidStatus {
+		if errors.Is(err, services.ErrInvalidStatus) {
 			log.Warnf("reject_leave_failed reason=invalid_status leave_id=%s error=%v", id, err)
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -109,7 +110,7 @@ func (h *LeaveHandler) GetLeaveRequest(c echo.Context) error {
 
 	leave, err := h.leaveService.GetLeaveRequestByID(id)
 	if err != nil {
-		if err == services.ErrLeaveNotFound {
+		if errors.Is(err, services.ErrLeaveNotFound) {
 			log.Warnf("get_leave_failed reason=not_found leave_id=%s", id)
 			return echo.NewHTTPError(http.StatusNotFound, "Leave request not found")
 		}
@@ -168,15 +169,15 @@ func (h *LeaveHandler) UpdateLeaveRequest(c echo.Context) error {
 
 	leave, err := h.leaveService.UpdateLeaveRequest(id, userID, &req)
 	if err != nil {
-		if err == services.ErrLeaveNotFound {
+		if errors.Is(err, services.ErrLeaveNotFound) {
 			log.Warnf("update_leave_failed reason=not_found leave_id=%s", id)
 			return echo.NewHTTPError(http.StatusNotFound, "Leave request not found")
 		}
-		if err == services.ErrUnauthorizedAction {
+		if errors.Is(err, services.ErrUnauthorizedAction) {
 			log.Warnf("update_leave_failed reason=forbidden leave_id=%s user_id=%s", id, userID)
 			return echo.NewHTTPError(http.StatusForbidden, "Access denied")
 		}
-		if err == services.ErrInvalidStatus {
+		if errors.Is(err, services.ErrInvalidStatus) {
 			log.Warnf("update_leave_failed reason=invalid_status leave_id=%s error=%v", id, err)
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -208,15 +209,15 @@ func (h *LeaveHandler) CancelLeaveRequest(c echo.Context) error {
 
 	err = h.leaveService.CancelLeaveRequest(id, userID)
 	if err != nil {
-		if err == services.ErrLeaveNotFound {
+		if errors.Is(err, services.ErrLeaveNotFound) {
 			log.Warnf("cancel_leave_failed reason=not_found leave_id=%s", id)
 			return echo.NewHTTPError(http.StatusNotFound, "Leave request not found")
 		}
-		if err == services.ErrUnauthorizedAction {
+		if errors.Is(err, services.ErrUnauthorizedAction) {
 			log.Warnf("cancel_leave_failed reason=forbidden leave_id=%s user_id=%s", id, userID)
 			return echo.NewHTTPError(http.StatusForbidden, "Access denied")
 		}
-		if err == services.ErrInvalidStatus {
+		if errors.Is(err, services.ErrInvalidStatus) {
 			log.Warnf("cancel_leave_failed reason=invalid_status leave_id=%s error=%v", id, err)
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -225,5 +226,5 @@ func (h *LeaveHandler) CancelLeaveRequest(c echo.Context) error {
 	}
 
 	log.Infof("cancel_leave_success leave_id=%s", id)
-	return c.NoContent(http.StatusNoContent)
+	return c.String(http.StatusNoContent, "")
 }

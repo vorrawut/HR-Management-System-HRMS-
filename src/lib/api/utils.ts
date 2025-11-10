@@ -8,6 +8,11 @@ export function successResponse<T>(
   data: T,
   status: number = 200
 ): NextResponse<ApiResponse<T>> {
+  // 204 No Content must have no body
+  if (status === 204) {
+    return new NextResponse(null, { status: 204 });
+  }
+  
   return NextResponse.json(
     {
       success: true,
