@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { ErrorState } from "@/components/ui/ErrorState";
+import { useToast } from "@/contexts/ToastContext";
 import { PAGE_ROUTES, getLoginRedirectUrl } from "@/lib/routes";
 import Link from "next/link";
 
@@ -16,8 +16,15 @@ interface LoginFormProps {
 export function LoginForm({ error }: LoginFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
   const callbackUrl = getLoginRedirectUrl(searchParams.get("callbackUrl"));
+
+  useEffect(() => {
+    if (error) {
+      toast.showError(error);
+    }
+  }, [error, toast]);
 
   const handleLogin = async () => {
     try {
@@ -35,8 +42,6 @@ export function LoginForm({ error }: LoginFormProps) {
     <Card className="backdrop-blur-sm bg-white/90 dark:bg-gray-800/90 border-gray-200/50 dark:border-gray-700/50 shadow-2xl">
       <CardHeader title="Sign In" />
       <CardContent className="space-y-6">
-        {error && <ErrorState message={error} />}
-
         <div className="space-y-4">
           <Button
             onClick={handleLogin}

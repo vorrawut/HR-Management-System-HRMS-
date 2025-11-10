@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, FormEvent } from "react";
-import { Card, CardHeader, CardContent, Button, ErrorState } from "@/components/ui";
+import { Card, CardHeader, CardContent, Button } from "@/components/ui";
+import { useToast } from "@/contexts/ToastContext";
 
 interface ApprovalModalProps {
   type: "approve" | "reject";
@@ -16,9 +17,9 @@ export function ApprovalModal({
   onConfirm,
   onCancel,
 }: ApprovalModalProps) {
+  const toast = useToast();
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const isReject = type === "reject";
   const title = isReject ? "Reject Leave Request" : "Approve Leave Request";
@@ -27,10 +28,9 @@ export function ApprovalModal({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError(null);
 
     if (isReject && (!comment.trim() || comment.trim().length < 10)) {
-      setError("Rejection reason is required and must be at least 10 characters");
+      toast.showError("Rejection reason is required and must be at least 10 characters");
       return;
     }
 
@@ -38,7 +38,7 @@ export function ApprovalModal({
     try {
       await onConfirm(comment.trim());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to process request");
+      // Error is already handled by the parent component via toast
       setLoading(false);
     }
   };
@@ -54,8 +54,6 @@ export function ApprovalModal({
                 ? `Are you sure you want to reject ${employeeName}'s leave request? Please provide a reason.`
                 : `Approve ${employeeName}'s leave request. You can optionally add a comment.`}
             </p>
-
-            {error && <ErrorState message={error} />}
 
             <div>
               <label

@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { PageHeader, Card, CardHeader, CardContent, LoadingState, ErrorState, Button } from "@/components/ui";
+import { PageHeader, Card, CardHeader, CardContent, LoadingState, Button, ConfirmationModal } from "@/components/ui";
 import { LeaveRequestCard, LeaveRequestForm } from "@/components/leave";
+import { useToast } from "@/contexts/ToastContext";
 import {
   getLeaveRequests,
   cancelLeaveRequest,
@@ -14,16 +15,17 @@ import {
   type UpdateLeaveRequest,
   type CreateLeaveRequest,
 } from "@/lib/api/leave/services";
-import { API_ROUTES, PAGE_ROUTES } from "@/lib/routes";
+import { PAGE_ROUTES } from "@/lib/routes";
 
 export default function EmployeeLeavesPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const toast = useToast();
   const [leaves, setLeaves] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState<{ id: string; employeeName: string } | null>(null);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -34,12 +36,12 @@ export default function EmployeeLeavesPage() {
   const loadLeaves = async () => {
     try {
       setLoading(true);
-      setError(null);
       const data = await getLeaveRequests();
       // Ensure data is always an array
       setLeaves(Array.isArray(data) ? data : []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load leave requests");
+      const message = err instanceof Error ? err.message : "Failed to load leave requests";
+      toast.showError(message);
       setLeaves([]); // Reset to empty array on error
     } finally {
       setLoading(false);
@@ -51,16 +53,22 @@ export default function EmployeeLeavesPage() {
     setShowForm(true);
   };
 
-  const handleCancel = async (id: string) => {
-    if (!confirm("Are you sure you want to cancel this leave request?")) {
-      return;
-    }
+  const handleCancelClick = (id: string) => {
+    const leave = leaves.find((l) => l.id === id);
+    setConfirmCancel({ id, employeeName: leave?.employeeName || "this leave request" });
+  };
+
+  const handleCancelConfirm = async () => {
+    if (!confirmCancel) return;
 
     try {
-      await cancelLeaveRequest(id);
+      await cancelLeaveRequest(confirmCancel.id);
+      toast.showSuccess("Leave request cancelled successfully");
+      setConfirmCancel(null);
       await loadLeaves();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to cancel leave request");
+      const message = err instanceof Error ? err.message : "Failed to cancel leave request";
+      toast.showError(message);
     }
   };
 
@@ -68,14 +76,17 @@ export default function EmployeeLeavesPage() {
     try {
       if (editingId) {
         await updateLeaveRequest(editingId, data as UpdateLeaveRequest);
+        toast.showSuccess("Leave request updated successfully");
       } else {
         await createLeaveRequest(data as CreateLeaveRequest);
+        toast.showSuccess("Leave request created successfully");
       }
       setEditingId(null);
       setShowForm(false);
       await loadLeaves();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to submit leave request");
+      const message = err instanceof Error ? err.message : "Failed to submit leave request";
+      toast.showError(message);
     }
   };
 
@@ -96,16 +107,11 @@ export default function EmployeeLeavesPage() {
   const editingLeave = editingId ? leaves.find((l) => l.id === editingId) : null;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <PageHeader title="My Leave Requests" />
-      
-      {error && (
-        <div className="mb-4">
-          <ErrorState message={error} />
-        </div>
-      )}
+    <>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <PageHeader title="My Leave Requests" />
 
-      <div className="mb-6">
+        <div className="mb-6">
         <Button
           variant="primary"
           onClick={() => {
@@ -154,12 +160,25 @@ export default function EmployeeLeavesPage() {
               key={leave.id}
               leave={leave}
               onEdit={leave.status === "pending" ? handleEdit : undefined}
-              onCancel={leave.status === "pending" ? handleCancel : undefined}
+              onCancel={leave.status === "pending" ? () => handleCancelClick(leave.id) : undefined}
             />
           ))}
         </div>
       )}
-    </div>
+      </div>
+
+      {confirmCancel && (
+        <ConfirmationModal
+          title="Cancel Leave Request"
+          message={`Are you sure you want to cancel ${confirmCancel.employeeName}'s leave request? This action cannot be undone.`}
+          confirmText="Cancel Request"
+          cancelText="Keep Request"
+          variant="warning"
+          onConfirm={handleCancelConfirm}
+          onCancel={() => setConfirmCancel(null)}
+        />
+      )}
+    </>
   );
 }
 

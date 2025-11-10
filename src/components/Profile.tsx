@@ -1,21 +1,34 @@
 "use client";
 
+import { useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { PageHeader, LoadingState, ErrorState } from "@/components/ui";
+import { useRouter } from "next/navigation";
+import { PageHeader, LoadingState } from "@/components/ui";
+import { useToast } from "@/contexts/ToastContext";
 import { UserInfoCard } from "@/components/profile/UserInfoCard";
 import { TokenInfoCard } from "@/components/profile/TokenInfoCard";
 import { RolesPermissionsPanel } from "@/components/profile/RolesPermissionsPanel";
 import { TokenDetailsPanel } from "@/components/profile/TokenDetailsPanel";
+import { PAGE_ROUTES } from "@/lib/routes";
 
 export default function Profile() {
   const { status } = useSession();
+  const router = useRouter();
+  const toast = useToast();
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      toast.showWarning("Please log in to view your profile.");
+      router.push(PAGE_ROUTES.LOGIN);
+    }
+  }, [status, router, toast]);
 
   if (status === "loading") {
     return <LoadingState />;
   }
 
   if (status === "unauthenticated") {
-    return <ErrorState message="Please log in to view your profile." />;
+    return null;
   }
 
   return (

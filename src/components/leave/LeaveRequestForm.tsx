@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, FormEvent } from "react";
-import { Card, CardHeader, CardContent, Button, ErrorState } from "@/components/ui";
+import { Card, CardHeader, CardContent, Button } from "@/components/ui";
+import { useToast } from "@/contexts/ToastContext";
 import type { CreateLeaveRequest, UpdateLeaveRequest } from "@/lib/api/leave/services";
 
 interface LeaveRequestFormProps {
@@ -22,13 +23,13 @@ export function LeaveRequestForm({
   onCancel,
   submitLabel = "Submit Request",
 }: LeaveRequestFormProps) {
+  const toast = useToast();
   const [leaveType, setLeaveType] = useState(initialData?.leaveType || "annual");
   const [reason, setReason] = useState(initialData?.reason || "");
   const [startDate, setStartDate] = useState(initialData?.startDate || "");
   const [endDate, setEndDate] = useState(initialData?.endDate || "");
   const [days, setDays] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const calculateDays = (start: string, end: string) => {
     if (!start || !end) {
@@ -82,20 +83,19 @@ export function LeaveRequestForm({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError(null);
 
     if (!leaveType || !reason || !startDate || !endDate) {
-      setError("All fields are required");
+      toast.showError("All fields are required");
       return;
     }
 
     if (days <= 0) {
-      setError("Invalid date range");
+      toast.showError("Invalid date range. Please select valid start and end dates.");
       return;
     }
 
     if (reason.length < 10) {
-      setError("Reason must be at least 10 characters");
+      toast.showError("Reason must be at least 10 characters");
       return;
     }
 
@@ -108,7 +108,8 @@ export function LeaveRequestForm({
         endDate,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to submit request");
+      const message = err instanceof Error ? err.message : "Failed to submit request";
+      toast.showError(message);
     } finally {
       setLoading(false);
     }
@@ -119,8 +120,6 @@ export function LeaveRequestForm({
       <CardHeader title={initialData ? "Edit Leave Request" : "New Leave Request"} />
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && <ErrorState message={error} />}
-
           <div>
             <label
               htmlFor="leaveType"

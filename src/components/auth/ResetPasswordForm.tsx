@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
-import { ErrorState } from "@/components/ui/ErrorState";
+import { useToast } from "@/contexts/ToastContext";
 import { FirstTimeLoginSection } from "./FirstTimeLoginSection";
 import { ForgotPasswordSection } from "./ForgotPasswordSection";
 import { API_ROUTES } from "@/lib/routes";
@@ -15,8 +15,8 @@ interface KeycloakConfig {
 
 export function ResetPasswordForm() {
   const searchParams = useSearchParams();
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [config, setConfig] = useState<KeycloakConfig | null>(null);
 
@@ -27,28 +27,27 @@ export function ResetPasswordForm() {
       .then((res) => res.json())
       .then((data) => {
         if (data.error) {
-          setError(data.error);
+          toast.showError(data.error);
         } else {
           setConfig(data);
         }
       })
       .catch(() => {
-        setError("Failed to load configuration. Please contact support.");
+        toast.showError("Failed to load configuration. Please contact support.");
       });
 
     if (errorParam) {
-      setError(decodeURIComponent(errorParam));
+      toast.showError(decodeURIComponent(errorParam));
     }
-  }, [errorParam]);
+  }, [errorParam, toast]);
 
   const handleResetPassword = () => {
     if (!config) {
-      setError("Configuration not loaded. Please wait and try again.");
+      toast.showError("Configuration not loaded. Please wait and try again.");
       return;
     }
 
     setLoading(true);
-    setError(null);
     setInfo(null);
 
     const resetUrl = `${config.issuer}/login-actions/reset-credentials?client_id=${config.clientId}`;
@@ -57,12 +56,12 @@ export function ResetPasswordForm() {
 
   const handleFirstTimeLogin = () => {
     if (!config) {
-      setError("Configuration not loaded. Please wait and try again.");
+      toast.showError("Configuration not loaded. Please wait and try again.");
       return;
     }
 
     setLoading(true);
-    setError(null);
+    toast.showInfo("Redirecting to Keycloak login. If this is your first login, you'll be prompted to reset your password.");
     setInfo("Redirecting to Keycloak login. If this is your first login, you'll be prompted to reset your password.");
 
     const redirectUri = encodeURIComponent(`${window.location.origin}/api/auth/callback/keycloak`);
@@ -75,7 +74,6 @@ export function ResetPasswordForm() {
     <Card className="backdrop-blur-sm bg-white/90 dark:bg-gray-800/90 border-gray-200/50 dark:border-gray-700/50 shadow-2xl">
       <CardHeader title="Password Reset" />
       <CardContent className="space-y-6">
-        {error && <ErrorState message={error} />}
         {info && (
           <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-4 text-sm text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
             {info}

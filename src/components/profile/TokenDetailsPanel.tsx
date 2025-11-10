@@ -1,10 +1,19 @@
 "use client";
 
-import { Card, CardHeader, CardContent, LoadingState, ErrorState } from "@/components/ui";
+import { useEffect } from "react";
+import { Card, CardHeader, CardContent, LoadingState } from "@/components/ui";
 import { useToken } from "@/contexts/TokenContext";
+import { useToast } from "@/contexts/ToastContext";
 
 export function TokenDetailsPanel() {
   const { fullTokenPayload, loading, error } = useToken();
+  const toast = useToast();
+
+  useEffect(() => {
+    if (error) {
+      toast.showError(error);
+    }
+  }, [error, toast]);
 
   if (loading) {
     return (
@@ -12,17 +21,6 @@ export function TokenDetailsPanel() {
         <CardHeader title="Token Details" />
         <CardContent>
           <LoadingState message="Loading full token details..." />
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card>
-        <CardHeader title="Token Details" />
-        <CardContent>
-          <ErrorState message={error} />
         </CardContent>
       </Card>
     );

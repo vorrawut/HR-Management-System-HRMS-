@@ -1,20 +1,33 @@
 "use client";
 
+import { useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardContent } from "@/components/ui";
-import { LoadingState, ErrorState } from "@/components/ui";
+import { LoadingState } from "@/components/ui";
 import { PageHeader } from "@/components/ui";
+import { useToast } from "@/contexts/ToastContext";
 import { PersonalInfo } from "@/components/dashboard";
+import { PAGE_ROUTES } from "@/lib/routes";
 
 export default function SecuredPage() {
   const { data: session, status } = useSession();
+  const router = useRouter();
+  const toast = useToast();
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      toast.showWarning("Access Denied. Please log in.");
+      router.push(PAGE_ROUTES.LOGIN);
+    }
+  }, [status, router, toast]);
 
   if (status === "loading") {
     return <LoadingState />;
   }
 
   if (status === "unauthenticated") {
-    return <ErrorState message="Access Denied. Please log in." />;
+    return null;
   }
 
   return (

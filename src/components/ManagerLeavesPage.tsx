@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { PageHeader, LoadingState, ErrorState } from "@/components/ui";
+import { PageHeader, LoadingState } from "@/components/ui";
 import { ManagerLeaveCard, ApprovalModal } from "@/components/leave";
+import { useToast } from "@/contexts/ToastContext";
 import {
   getPendingLeaveRequests,
   approveLeaveRequest,
@@ -16,9 +17,9 @@ import { PAGE_ROUTES } from "@/lib/routes";
 export default function ManagerLeavesPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const toast = useToast();
   const [leaves, setLeaves] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [modalState, setModalState] = useState<{
     show: boolean;
@@ -36,12 +37,12 @@ export default function ManagerLeavesPage() {
   const loadLeaves = async () => {
     try {
       setLoading(true);
-      setError(null);
       const data = await getPendingLeaveRequests();
       // Ensure data is always an array
       setLeaves(Array.isArray(data) ? data : []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load pending leave requests");
+      const message = err instanceof Error ? err.message : "Failed to load pending leave requests";
+      toast.showError(message);
       setLeaves([]); // Reset to empty array on error
     } finally {
       setLoading(false);
@@ -71,18 +72,20 @@ export default function ManagerLeavesPage() {
 
     try {
       setProcessingId(modalState.leaveId);
-      setError(null);
 
       if (modalState.type === "approve") {
         await approveLeaveRequest(modalState.leaveId, { comment });
+        toast.showSuccess(`Leave request from ${modalState.employeeName} has been approved`);
       } else {
         await rejectLeaveRequest(modalState.leaveId, { comment });
+        toast.showSuccess(`Leave request from ${modalState.employeeName} has been rejected`);
       }
 
       setModalState(null);
       await loadLeaves();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to process request");
+      const message = err instanceof Error ? err.message : "Failed to process request";
+      toast.showError(message);
       throw err; // Re-throw to let modal handle it
     } finally {
       setProcessingId(null);
@@ -91,7 +94,6 @@ export default function ManagerLeavesPage() {
 
   const handleModalCancel = () => {
     setModalState(null);
-    setError(null);
   };
 
   if (status === "loading") {
@@ -107,12 +109,6 @@ export default function ManagerLeavesPage() {
     <>
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <PageHeader title="Pending Leave Requests" />
-        
-        {error && !modalState && (
-          <div className="mb-4">
-            <ErrorState message={error} />
-          </div>
-        )}
 
         {loading ? (
           <LoadingState message="Loading pending leave requests..." />
