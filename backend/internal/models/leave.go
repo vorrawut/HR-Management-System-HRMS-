@@ -99,7 +99,7 @@ func (l *LeaveRequest) GetManagerComment() string {
 // CreateLeaveRequest represents the payload for creating a leave request
 type CreateLeaveRequest struct {
 	LeaveType string    `json:"leaveType" validate:"required,oneof=annual sick personal other"`
-	Reason    string    `json:"reason" validate:"required,min=10"`
+	Reason    string    `json:"reason" validate:"omitempty,min=10"`
 	StartDate time.Time `json:"startDate" validate:"required"`
 	EndDate   time.Time `json:"endDate" validate:"required,gtfield=StartDate"`
 }

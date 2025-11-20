@@ -41,10 +41,22 @@ export async function getFederatedLogoutUrl(
   }
 
   const endSessionUrl = `${process.env.KEYCLOAK_ISSUER}/protocol/openid-connect/logout`;
+  
+  // Add timestamp to prevent caching and ensure fresh logout
+  const timestamp = Date.now();
   const redirectUri = encodeURIComponent(
-    process.env.NEXTAUTH_URL || "http://localhost:3000"
+    `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/login?prompt=login&logout=${timestamp}`
   );
-  const logoutUrl = `${endSessionUrl}?id_token_hint=${idToken}&post_logout_redirect_uri=${redirectUri}`;
+  
+  // Construct logout URL with all required parameters for complete session termination
+  // id_token_hint: Identifies the session to logout
+  // post_logout_redirect_uri: Where to redirect after logout
+  // client_id: Required for some Keycloak configurations
+  const clientId = process.env.KEYCLOAK_CLIENT_ID || "";
+  const logoutUrl = `${endSessionUrl}?` +
+    `id_token_hint=${encodeURIComponent(idToken)}&` +
+    `post_logout_redirect_uri=${redirectUri}` +
+    (clientId ? `&client_id=${encodeURIComponent(clientId)}` : "");
 
   return {
     success: true,

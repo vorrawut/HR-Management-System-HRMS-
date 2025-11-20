@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { federatedLogout } from "@/lib/auth/federatedLogout";
+import { secureLogout } from "@/lib/auth/logout";
 import { LogoutHeader } from "./LogoutHeader";
 import { PAGE_ROUTES } from "@/lib/routes";
 
@@ -15,9 +15,13 @@ export function LogoutConfirmation() {
   const handleLogout = async () => {
     setLoading(true);
     try {
-      await federatedLogout();
+      // secureLogout handles all cleanup and redirects
+      await secureLogout({ redirect: true, callbackUrl: PAGE_ROUTES.LOGIN });
     } catch (error) {
-      router.push("/login");
+      // Fallback redirect if secureLogout fails
+      router.push(PAGE_ROUTES.LOGIN);
+    } finally {
+      setLoading(false);
     }
   };
 

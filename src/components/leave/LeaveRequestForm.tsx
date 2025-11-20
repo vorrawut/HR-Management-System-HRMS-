@@ -84,8 +84,8 @@ export function LeaveRequestForm({
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!leaveType || !reason || !startDate || !endDate) {
-      toast.showError("All fields are required");
+    if (!leaveType || !startDate || !endDate) {
+      toast.showError("Leave type, start date, and end date are required");
       return;
     }
 
@@ -94,8 +94,9 @@ export function LeaveRequestForm({
       return;
     }
 
-    if (reason.length < 10) {
-      toast.showError("Reason must be at least 10 characters");
+    // If reason is provided, it must be at least 10 characters
+    if (reason && reason.length > 0 && reason.length < 10) {
+      toast.showError("Reason must be at least 10 characters if provided");
       return;
     }
 
@@ -191,7 +192,7 @@ export function LeaveRequestForm({
               htmlFor="reason"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
-              Reason <span className="text-gray-500">(minimum 10 characters)</span>
+              Reason <span className="text-gray-500">(optional, minimum 10 characters if provided)</span>
             </label>
             <textarea
               id="reason"
@@ -199,12 +200,13 @@ export function LeaveRequestForm({
               onChange={(e) => setReason(e.target.value)}
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-              placeholder="Please provide a detailed reason for your leave request..."
-              required
+              placeholder="Please provide a detailed reason for your leave request (optional)..."
             />
-            <p className="mt-1 text-xs text-gray-500">
-              {reason.length}/10 characters minimum
-            </p>
+            {reason.length > 0 && (
+              <p className="mt-1 text-xs text-gray-500">
+                {reason.length}/10 characters minimum
+              </p>
+            )}
           </div>
 
           <div className="flex gap-2">

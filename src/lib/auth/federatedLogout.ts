@@ -1,38 +1,6 @@
-import { signOut } from "next-auth/react";
-import { API_ROUTES, PAGE_ROUTES } from "@/lib/routes";
-
-export async function federatedLogout() {
-  try {
-    // Call the federated logout endpoint to get the Keycloak logout URL
-    const response = await fetch(API_ROUTES.AUTH.FEDERATED_LOGOUT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      
-      // If we have a logout URL, redirect to Keycloak for federated logout
-      if (data.logoutUrl) {
-        // Sign out from NextAuth first (this clears the session)
-        await signOut({ redirect: false });
-        
-        // Then redirect to Keycloak's logout endpoint
-        window.location.href = data.logoutUrl;
-        return;
-      }
-    }
-
-    // Fallback to regular sign out if federated logout fails
-    await signOut({ callbackUrl: PAGE_ROUTES.LOGIN, redirect: true });
-  } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.error("Error during federated logout:", error);
-    }
-    // Fallback to regular sign out
-    await signOut({ callbackUrl: PAGE_ROUTES.LOGIN, redirect: true });
-  }
-}
+/**
+ * @deprecated Use secureLogout from @/lib/auth/logout instead
+ * This file is kept for backward compatibility
+ */
+export { secureLogout as federatedLogout } from "./logout";
 

@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/contexts/ToastContext";
-import { PAGE_ROUTES, getLoginRedirectUrl } from "@/lib/routes";
+import { PAGE_ROUTES, getLoginRedirectUrl, API_ROUTES } from "@/lib/routes";
 import Link from "next/link";
 
 interface LoginFormProps {
@@ -29,6 +29,106 @@ export function LoginForm({ error }: LoginFormProps) {
   const handleLogin = async () => {
     try {
       setLoading(true);
+      
+      // Check if we should force login screen (after logout or from query param)
+      const searchParams = new URLSearchParams(window.location.search);
+      const forceLoginFromQuery = searchParams.get("prompt") === "login" || searchParams.get("logout");
+      const forceLoginFromStorage = typeof window !== "undefined" 
+        ? sessionStorage.getItem("force_login") === "true"
+        : false;
+      const forceLogin = forceLoginFromQuery || forceLoginFromStorage;
+      
+      // Clear the flag and query params
+      if (forceLogin && typeof window !== "undefined") {
+        try {
+          sessionStorage.removeItem("force_login");
+          // Remove prompt and logout from URL to prevent re-triggering
+          if (forceLoginFromQuery) {
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.delete("prompt");
+            newUrl.searchParams.delete("logout");
+            window.history.replaceState({}, "", newUrl.toString());
+          }
+        } catch {
+          // Ignore if sessionStorage is not available
+        }
+      }
+      
+      // If force_login flag is set, we need to manually construct the Keycloak URL
+      // with prompt=login to force the login screen
+      if (forceLogin) {
+        try {
+          // Fetch Keycloak config from API
+          const configResponse = await fetch(API_ROUTES.AUTH.KEYCLOAK_CONFIG);
+          const config = await configResponse.json();
+          
+          if (config.error || !config.issuer || !config.clientId) {
+            // Fallback to normal login if config fetch fails
+            await signIn("keycloak", { callbackUrl, redirect: true });
+            return;
+          }
+          
+          const redirectUri = encodeURIComponent(
+            `${window.location.origin}/api/auth/callback/keycloak`
+          );
+          const callbackUri = encodeURIComponent(callbackUrl);
+          
+          // Add timestamp to prevent caching
+          const timestamp = Date.now();
+          
+          // Construct Keycloak authorization URL with prompt=login
+          // This forces Keycloak to show the login screen even if SSO session exists
+          // Using prompt=login ensures user must re-authenticate
+          const authUrl = `${config.issuer}/protocol/openid-connect/auth?` +
+            `client_id=${encodeURIComponent(config.clientId)}&` +
+            `redirect_uri=${redirectUri}&` +
+            `response_type=code&` +
+            `scope=openid email profile&` +
+            `prompt=login&` + // Force login screen
+            `kc_idp_hint=&` + // Clear any identity provider hint
+            `state=${encodeURIComponent(JSON.stringify({ callbackUrl: callbackUri, ts: timestamp }))}`;
+          
+          // Use replace to prevent back button navigation
+          window.location.replace(authUrl);
+          return;
+        } catch (configError) {
+          // Fallback to normal login if config fetch fails
+          await signIn("keycloak", { callbackUrl, redirect: true });
+          return;
+        }
+      }
+      
+      // Normal login flow - but still add prompt=select_account to show account selection
+      // This is less aggressive than prompt=login but still prevents silent auto-login
+      try {
+        const configResponse = await fetch(API_ROUTES.AUTH.KEYCLOAK_CONFIG);
+        const config = await configResponse.json();
+        
+        if (!config.error && config.issuer && config.clientId) {
+          const redirectUri = encodeURIComponent(
+            `${window.location.origin}/api/auth/callback/keycloak`
+          );
+          const callbackUri = encodeURIComponent(callbackUrl);
+          const timestamp = Date.now();
+          
+          // Use prompt=select_account to show account selection screen
+          // This prevents silent auto-login while being less aggressive than prompt=login
+          const authUrl = `${config.issuer}/protocol/openid-connect/auth?` +
+            `client_id=${encodeURIComponent(config.clientId)}&` +
+            `redirect_uri=${redirectUri}&` +
+            `response_type=code&` +
+            `scope=openid email profile&` +
+            `prompt=select_account&` + // Show account selection
+            `state=${encodeURIComponent(JSON.stringify({ callbackUrl: callbackUri, ts: timestamp }))}`;
+          
+          window.location.href = authUrl;
+          return;
+        }
+      } catch {
+        // Fallback to NextAuth signIn if config fetch fails
+      }
+      
+      // Fallback to normal NextAuth login
       await signIn("keycloak", {
         callbackUrl,
         redirect: true,
